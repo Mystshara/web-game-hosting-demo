@@ -57,11 +57,13 @@ Designed to be scalable, modular, and secure — this stack forms the foundation
 
 ## 🗂️ What's Included
 
-- Sample `main.tf` showing Terraform layout for base VM provisioning
-- Safe Kubernetes manifest examples (`*.yaml`)
-- Basic Ansible role structure (coming soon)
-- Architecture diagram or screenshots (coming soon)
-- This `README.md` for public visibility
+🗂️ What's Included
+✅ Sample `main.tf` showing Terraform layout for base VM provisioning  
+✅ Safe, demo-ready Terraform module for Proxmox-based VM deployment  
+🚧 Kubernetes manifest examples (*.yaml) — coming soon  
+🚧 Basic Ansible role structure — coming soon  
+🚧 Architecture diagram or screenshots — coming soon  
+📖 This README.md for public visibility  
 
 > 🔐 Full code and deployment logic remain private for now. This demo repo is designed to give technical recruiters or collaborators a breakdown of architecture and tooling used.
 
