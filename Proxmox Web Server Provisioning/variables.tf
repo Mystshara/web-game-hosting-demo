@@ -19,3 +19,21 @@ variable "worker_count" {
   type        = number
   default     = 2
 }
+
+variable "proxmox_user" {
+  description = "Proxmox user (used when demo_mode is false)"
+  type        = string
+  default     = "" # Leave empty for demo mode
+}
+
+variable "proxmox_password" {
+  description = "Proxmox password (used when demo_mode is false)"
+  type        = string
+  default     = "" # Leave empty for demo mode
+}
+
+variable "demo_mode" {
+  description = "Toggle to use mock demo values instead of real Vault secrets"
+  type        = bool
+  default     = true
+}

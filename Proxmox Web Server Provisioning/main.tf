@@ -1,11 +1,24 @@
 ﻿##############################
-# 🧠 2. Local Values (Demo-safe)
+# 🧠 Local Values (Demo-aware Upgrade)
+# Updated to support dynamic toggle using `demo_mode`
 ##############################
 
 locals {
-  proxmox_host = "demo-proxmox.local"         # placeholder
-  ssh_key_path = "~/.ssh/id_ed25519"          # demo key path
-  ssh_user     = "ubuntu"                     # typical demo user
+  # 👇 Switches between hardcoded demo and secure Vault references
+  proxmox_host = var.demo_mode ? "demo-proxmox.local" : data.vault_generic_secret.proxmox_config[0].data["host"]
+  ssh_key_path = var.demo_mode ? "~/.ssh/id_ed25519" : data.vault_generic_secret.proxmox_config[0].data["ssh_key_path"]
+  ssh_user     = var.demo_mode ? "ubuntu" : data.vault_generic_secret.proxmox_config[0].data["ssh_user"]
+  vm_password  = var.demo_mode ? "changeme" : data.vault_generic_secret.proxmox_config[0].data["vm_password"]
+  ssh_pub_key  = var.demo_mode ? "ssh-ed25519 AAAAC3MocKedDemOOMOkey==" : data.vault_generic_secret.proxmox_config[0].data["id_ssh_pub"]
+}
+
+##############################
+# 🔐 Vault Secrets (conditionally loaded when demo_mode = false)
+##############################
+
+data "vault_generic_secret" "proxmox_config" {
+  count = var.demo_mode ? 0 : 1
+  path  = "secret/data/proxmox-config"
 }
 
 ##################################
@@ -55,12 +68,8 @@ resource "proxmox_vm_qemu" "controller" {
 
   ipconfig0  = "ip=dhcp"
   ipconfig1  = "ip=dhcp"
-  ciuser     = "ubuntu"
-  cipassword = "changeme"
-
-  sshkeys = <<EOF
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDEMOkeyPlaceHolderKeyForDemo
-EOF
+  ciuser     = local.ssh_user
+  cipassword = local.vm_password
 
   lifecycle {
     ignore_changes = [
@@ -122,12 +131,9 @@ resource "proxmox_vm_qemu" "worker" {
 
   ipconfig0  = "ip=dhcp"
   ipconfig1  = "ip=dhcp"
-  ciuser     = "ubuntu"
-  cipassword = "changeme"
-
-  sshkeys = <<EOF
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDEMOkeyPlaceHolderKeyForDemo
-EOF
+  # replaced
+  ciuser     = local.ssh_user
+  cipassword = local.vm_password
 
   lifecycle {
     ignore_changes = [
@@ -156,10 +162,14 @@ data "external" "controller_ip" {
 }
 
 ##############################
-# 🔐 5. Simulated Vault Output
+# 🔐 Optional: Simulated Vault Output
+
+# Only simulate Vault storage when demo_mode is on
+
 ##############################
 
 resource "vault_kv_secret_v2" "controller_ip" {
+  count = var.demo_mode ? 1 : 0
   mount = "kv"
   name  = "ips/k8s-controller"
 
@@ -167,4 +177,3 @@ resource "vault_kv_secret_v2" "controller_ip" {
     ip_address = data.external.controller_ip.result["ip_address"]
   })
 }
-
